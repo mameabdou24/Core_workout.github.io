@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Two-Week Core Workout</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .exercise-gif {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 0.5rem;
+            background-color: #e2e8f0;
+            flex-shrink: 0;
+        }
+        .day-box {
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .day-box.active {
+            background-color: #4f46e5;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 14px 0 rgb(0 0 0 / 10%);
+        }
+        /* Scrollbar styling for day selector */
+        #day-selector {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        #day-selector::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <div class="container mx-auto max-w-lg p-4 pb-20">
+        
+        <header class="text-center my-6">
+            <h1 class="text-3xl font-bold text-indigo-600">Core Strengthening Program</h1>
+            <p class="text-slate-500 mt-2">A two-week plan to build an athletic foundation.</p>
+        </header>
+
+        <!-- Day Selector Boxes -->
+        <div id="day-selector" class="flex space-x-2 overflow-x-auto p-2 -mx-2">
+            <!-- Day boxes will be dynamically generated here -->
+        </div>
+
+        <!-- Workout Display Area -->
+        <main id="workout-display" class="mt-6 space-y-4">
+            <!-- Selected day's exercises will be shown here -->
+        </main>
+
+    </div>
+
+    <script>
+        // --- DATA ---
+        // Storing all workout data in a structured object.
+        // Corrected the typo in the URL from 'fitnessprogramer' to 'fitnessprogrammer'.
+        const programData = {
+            weeks: [
+                {
+                    week: 1,
+                    title: "Week 1: Foundation & Activation",
+                    days: [
+                        { day: 1, exercises: [
+                            { name: "Plank", details: "3 sets of 30-45 sec", desc: "Keep back straight, engage abs. Don't let hips sag.", gif: "https://fitnessprogramer.com/wp-content/uploads/2025/07/body-saw-plank.gif" },
+                            { name: "Glute Bridges", details: "3 sets of 15 reps", desc: "Squeeze your glutes at the top of the movement.", gif: "https://fitnessprogramer.com/wp-content/uploads/2022/02/Banded-Glute-Bridge.gif" },
+                            { name: "Dead Bug", details: "3 sets of 12 reps (6/side)", desc: "Keep your lower back pressed into the floor.", gif: "https://fitnessprogramer.com/wp-content/uploads/2021/05/Dead-Bug.gif" },
+                            { name: "Side Plank", details: "3 sets of 20-30 sec/side", desc: "Keep body in a straight line from head to feet.", gif: "https://fitnessprogramer.com/wp-content/uploads/2021/02/Side-Plank-1.png" },
+                            { name: "Leg Raises", details: "3 sets of 15 reps", desc: "Control the movement, avoid using momentum.", gif: "https://fitnessprogramer.com/wp-content/uploads/2021/02/Lying-Leg-Raise.gif" }
+                        ]},
+                        { day: 2, exercises: 'same as day 1' },
+                        { day: 3, exercises: 'same as day 1' }
+                    ]
+                },
+                {
+                    week: 2,
+                    title: "Week 2: Strength & Endurance",
+                    days: [
+                        { day: 1, exercises: [
+                            { name: "Plank", details: "3 sets of 45-60 sec", desc: "Keep back straight, engage abs. Don't let hips sag.", gif: "https://fitnessprogramer.com/wp-content/uploads/2025/07/body-saw-plank.gif" },
+                            { name: "Single-Leg Glute Bridge", details: "3 sets of 10-12 reps/leg", desc: "Keep your hips level throughout the movement.", gif: "https://fitnessprogramer.com/wp-content/uploads/2022/02/Banded-Single-Leg-Glute-Bridge.gif" },
+                            { name: "Dead Bug", details: "3 sets of 16 reps (8/side)", desc: "Maintain a stable core as you alternate limbs.", gif: "https://fitnessprogramer.com/wp-content/uploads/2021/05/Dead-Bug.gif" },
+                            { name: "Side Plank w/ Hip Dip", details: "3 sets of 12 reps/side", desc: "Lower and lift your hips in a controlled manner.", gif: "https://fitnessprogramer.com/wp-content/uploads/2025/03/Side-Plank-Hip-Adduction-Copenhagen-adduction-300x300.gif" },
+                            { name: "Reverse Crunches", details: "3 sets of 15 reps", desc: "Engage lower abs to bring knees up. (Alt: Hanging Knee Raises)", gif: "https://fitnessprogramer.com/wp-content/uploads/2021/02/Reverse-Crunch-1.gif" },
+                            { name: "Russian Twists", details: "3 sets of 20 reps (10/side)", desc: "Twist from your torso, not just your arms.", gif: "https://fitnessprogramer.com/wp-content/uploads/2021/02/Russian-Twist-300x300.gif" }
+                        ]},
+                        { day: 2, exercises: 'same as day 1' },
+                        { day: 3, exercises: 'same as day 1' }
+                    ]
+                }
+            ]
+        };
+
+        const daySelectorContainer = document.getElementById('day-selector');
+        const workoutDisplayContainer = document.getElementById('workout-display');
+
+        // --- RENDER FUNCTIONS ---
+
+        /**
+         * Renders the exercises for a specific day into the main display area.
+         * @param {number} weekIndex - The index of the week (0 or 1).
+         * @param {number} dayIndex - The index of the day within the week (0, 1, or 2).
+         */
+        function renderWorkoutForDay(weekIndex, dayIndex) {
+            workoutDisplayContainer.innerHTML = ''; // Clear previous content
+            
+            const weekData = programData.weeks[weekIndex];
+            const dayData = weekData.days[dayIndex];
+            
+            // For days 2 & 3, we reuse Day 1's exercise list.
+            const exercises = (dayData.exercises === 'same as day 1') 
+                ? weekData.days[0].exercises 
+                : dayData.exercises;
+
+            let html = `<h3 class="text-xl font-bold text-slate-700">${weekData.title} - Day ${dayData.day}</h3>`;
+
+            exercises.forEach(exercise => {
+                html += `<div class="exercise-card flex items-start p-3 bg-white rounded-lg shadow-sm">
+                            <img src="${exercise.gif}" alt="${exercise.name} animation" class="exercise-gif mr-4" onerror="this.src='https://placehold.co/100x100/e2e8f0/64748b?text=No+GIF'; this.onerror=null;">
+                            <div class="flex-1">
+                                <h4 class="font-bold text-indigo-700">${exercise.name}</h4>
+                                <p class="text-sm font-semibold text-slate-600">${exercise.details}</p>
+                                <p class="text-sm text-slate-500 mt-1">${exercise.desc}</p>
+                            </div>
+                         </div>`;
+            });
+            workoutDisplayContainer.innerHTML = html;
+        }
+
+        /**
+         * Creates and renders the day selector boxes at the top of the page.
+         */
+        function renderDaySelectors() {
+            let html = '';
+            programData.weeks.forEach((weekData, weekIndex) => {
+                weekData.days.forEach((dayData, dayIndex) => {
+                    html += `<div class="day-box flex-shrink-0 bg-white rounded-lg shadow-sm p-3 text-center" data-week="${weekIndex}" data-day="${dayIndex}">
+                                <span class="font-semibold">W${weekData.week} D${dayData.day}</span>
+                             </div>`;
+                });
+            });
+            daySelectorContainer.innerHTML = html;
+        }
+
+        // --- INITIALIZATION & EVENT LISTENERS ---
+        document.addEventListener('DOMContentLoaded', () => {
+            renderDaySelectors();
+            
+            const dayBoxes = document.querySelectorAll('.day-box');
+
+            dayBoxes.forEach(box => {
+                box.addEventListener('click', () => {
+                    // Remove active class from all other boxes
+                    dayBoxes.forEach(b => b.classList.remove('active'));
+                    // Add active class to the clicked box
+                    box.classList.add('active');
+
+                    const weekIndex = box.dataset.week;
+                    const dayIndex = box.dataset.day;
+                    renderWorkoutForDay(weekIndex, dayIndex);
+                });
+            });
+
+            // Automatically select and display the first day's workout on load
+            if (dayBoxes.length > 0) {
+                dayBoxes[0].click();
+            }
+        });
+
+    </script>
+
+</body>
+</html>
